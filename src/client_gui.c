@@ -140,6 +140,22 @@ void on_group_invite_btn_clicked(GtkButton *btn, gpointer data)
     }
 }
 
+void on_group_kick_btn_clicked(GtkButton *btn, gpointer data)
+{
+
+    int client_socket = *((int *)data);
+
+    if (curr_group_id != -1)
+    {
+        show_kick_from_group_dialog((int *)data);
+    }
+    else
+    {
+        notif_dialog(GTK_WINDOW(main_window), NOT_IN_GROUP_ROOM_NOTIF);
+    }
+}
+
+
 void on_group_info_btn_clicked(GtkButton *btn, gpointer data)
 {
 
@@ -242,6 +258,16 @@ void on_invite_to_group_confirm_btn_clicked(GtkButton *btn, gpointer data)
     invite_friend(client_socket, (char *)username);
 
     gtk_widget_destroy(invite_to_group_dialog);
+}
+
+void on_kick_from_group_confirm_btn_clicked(GtkButton *btn, gpointer data)
+{
+
+    int client_socket = *((int *)data);
+    const gchar *username = gtk_entry_get_text(GTK_ENTRY(kick_from_group_entry));
+    kick_friend(client_socket, (char *)username);
+
+    gtk_widget_destroy(kick_from_group_dialog);
 }
 
 //* ----------------------- UTILITY FUNCTIONS -----------------------
@@ -585,11 +611,17 @@ gpointer recv_handler(gpointer data)
         case INVITE_FRIEND:
             gdk_threads_add_idle(recv_invite_friend, &pkg);
             break;
+        case KICK_FRIEND:
+            gdk_threads_add_idle(recv_kick_friend, &pkg);
+            break;
         case ERR_GROUP_NOT_FOUND:
             gdk_threads_add_idle(recv_err_group_not_found, NULL);
             break;
         case ERR_IVITE_MYSELF:
             gdk_threads_add_idle(recv_err_invite_myself, NULL);
+            break;
+        case ERR_KICK_MYSELF:
+            gdk_threads_add_idle(recv_err_kick_myself, NULL);
             break;
         case ERR_USER_NOT_FOUND:
             gdk_threads_add_idle(recv_err_user_not_found, NULL);
@@ -600,8 +632,14 @@ gpointer recv_handler(gpointer data)
         case ERR_IS_MEM:
             gdk_threads_add_idle(recv_err_is_mem, NULL);
             break;
+        case ERR_IS_NOT_MEM:
+            gdk_threads_add_idle(recv_err_is_not_mem, NULL);
+            break;
         case INVITE_FRIEND_SUCC:
             gdk_threads_add_idle(recv_invite_friend_succ, &pkg);
+            break;
+        case KICK_FRIEND_SUCC:
+            gdk_threads_add_idle(recv_kick_friend_succ, &pkg);
             break;
         case GROUP_CHAT:
             gdk_threads_add_idle(recv_group_chat, &pkg);
@@ -946,6 +984,17 @@ gboolean recv_err_invite_myself(gpointer data)
     return FALSE;
 }
 
+gboolean recv_err_kick_myself(gpointer data)
+{
+
+    g_mutex_lock(&ui_mutex);
+    notif_dialog(GTK_WINDOW(main_window), KICK_MYSELF_NOTIF);
+    g_mutex_unlock(&ui_mutex);
+
+    is_done = 1;
+    return FALSE;
+}
+
 gboolean recv_err_user_not_found(gpointer data)
 {
 
@@ -979,6 +1028,17 @@ gboolean recv_err_is_mem(gpointer data)
     return FALSE;
 }
 
+gboolean recv_err_is_not_mem(gpointer data)
+{
+
+    g_mutex_lock(&ui_mutex);
+    notif_dialog(GTK_WINDOW(main_window), IS_MEM_NOT_NOTIF);
+    g_mutex_unlock(&ui_mutex);
+
+    is_done = 1;
+    return FALSE;
+}
+
 gboolean recv_invite_friend_succ(gpointer data)
 {
 
@@ -1005,6 +1065,41 @@ gboolean recv_invite_friend(gpointer data)
 
     char text[TEXT_SIZE] = {0};
     sprintf(text, INVITE_FRIEND_NOTIF, pkg_pt->sender, pkg_pt->msg);
+    notif_dialog(GTK_WINDOW(main_window), text);
+    gtk_button_clicked(GTK_BUTTON(refresh_list_btn));
+
+    g_mutex_unlock(&ui_mutex);
+
+    is_done = 1;
+    return FALSE;
+}
+
+gboolean recv_kick_friend_succ(gpointer data)
+{
+
+    Package *pkg_pt = (Package *)data;
+
+    g_mutex_lock(&ui_mutex);
+
+    char text[TEXT_SIZE] = {0};
+    sprintf(text, KICK_FRIEND_SUCC_NOTIF, pkg_pt->receiver, pkg_pt->msg);
+    notif_dialog(GTK_WINDOW(main_window), text);
+
+    g_mutex_unlock(&ui_mutex);
+
+    is_done = 1;
+    return FALSE;
+}
+
+gboolean recv_kick_friend(gpointer data)
+{
+
+    Package *pkg_pt = (Package *)data;
+
+    g_mutex_lock(&ui_mutex);
+
+    char text[TEXT_SIZE] = {0};
+    sprintf(text, KICK_FRIEND_NOTIF, pkg_pt->sender, pkg_pt->msg);
     notif_dialog(GTK_WINDOW(main_window), text);
     gtk_button_clicked(GTK_BUTTON(refresh_list_btn));
 

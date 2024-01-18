@@ -19,6 +19,7 @@
 #define ERR_USER_NOT_FOUND -207 /*mời bản thân vào nhóm */
 #define ERR_FULL_MEM  -208 /*full nguoi*/
 #define ERR_IS_MEM  -209 /*da la thanh vien trong nhom*/
+#define ERR_IS_NOT_MEM  -210/*khong la thanh vien trong nhom*/
 /**
  * Hiển thị thông báo lỗi
  * @param err_code mã lỗi

@@ -637,6 +637,26 @@ void invite_friend(int client_socket, char *friend_username)
     send(client_socket, &pkg, sizeof(pkg), 0);
 }
 
+void kick_friend(int client_socket, char *friend_username)
+{
+    // see_active_user(client_socket);
+    Package pkg;
+    // char friends_name[USERNAME_SIZE];
+
+    // printf("Friends name: \n");
+    // fgets(friends_name, USERNAME_SIZE, stdin);
+    // friends_name[strlen(friends_name) - 1] = '\0';
+
+    strcpy(pkg.sender, my_username);
+    strcpy(pkg.receiver, friend_username);
+    strcpy(pkg.msg, my_username);
+    strcat(pkg.msg, " Kicked you from ");
+    strcat(pkg.msg, curr_group_name);
+    pkg.ctrl_signal = KICK_FRIEND;
+    pkg.group_id = curr_group_id;
+    send(client_socket, &pkg, sizeof(pkg), 0);
+}
+
 // chat trong nhom
 void group_chat(int client_socket, char *msg)
 {

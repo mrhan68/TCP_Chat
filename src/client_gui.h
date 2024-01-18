@@ -24,11 +24,15 @@
 #define GROUP_NOT_FOUND_NOTIF "Vào phòng chat thất bại!\nNhóm không tồn tại hoặc bạn không là thành viên của nhóm này."
 #define NOT_IN_GROUP_ROOM_NOTIF "Thất bại!\nBạn đang không ở trong phòng chat của nhóm nào."
 #define INVITE_MYSELF_NOTIF "Thất bại!\nKhông thể mời chính mình vào nhóm."
+#define KICK_MYSELF_NOTIF "Thất bại!\nKhông thể đuổi chính mình ra khỏi nhóm."
 #define USER_NOT_FOUND_NOTIF "Thất bại!\nNgười bạn mời không online hoặc không tồn tại."
 #define FULL_MEM_NOTIF "Thất bại!\nSố thành viên của nhóm đã đến giới hạn. Không thể mời thêm."
 #define IS_MEM_NOTIF "Thất bại!\nNgười bạn mời đang là thành viên của nhóm từ trước."
+#define IS_NOT_MEM_NOTIF "Thất bại!\nNgười bạn đuổi đang không là thành viên của nhóm."
 #define INVITE_FRIEND_SUCC_NOTIF "Thành công!\nNgười dùng \"%s\" từ giờ sẽ là thành viên của nhóm \"%s\"."
 #define INVITE_FRIEND_NOTIF "Chú ý!\nNgười dùng \"%s\" đã thêm bạn vào nhóm \"%s\"."
+#define KICK_FRIEND_SUCC_NOTIF "Thành công!\nNgười dùng \"%s\" từ giờ sẽ không còn là thành viên của nhóm \"%s\"."
+#define KICK_FRIEND_NOTIF "Chú ý!\nNgười dùng \"%s\" đã đuổi bạn ra khỏi nhóm \"%s\"."
 #define LEAVE_GROUP_SUCC_NOTIF "Rời nhóm thành công!"
 #define NEW_MESSAGES_NOTIF "------------Tin nhắn mới------------"
 
@@ -57,6 +61,7 @@ GtkWidget *refresh_list_btn;
 GtkWidget *cur_user_label;
 GtkWidget *logout_btn;
 GtkWidget *group_invite_btn;
+GtkWidget *group_kick_btn;
 GtkWidget *group_info_btn;
 GtkWidget *group_leave_btn;
 GtkWidget *cur_chat_label;
@@ -90,6 +95,15 @@ GtkWidget *invite_to_group_btn_box;
 GtkWidget *invite_to_group_confirm_btn;
 GtkWidget *invite_to_group_exit_btn;
 
+//* kick from group dialog
+GtkWidget *kick_from_group_dialog;
+GtkWidget *kick_from_group_box;
+GtkWidget *kick_from_group_entry;
+GtkWidget *kick_from_group_btn_box;
+GtkWidget *kick_from_group_confirm_btn;
+GtkWidget *kick_from_group_exit_btn;
+
+
 //* group info dialog
 GtkWidget *group_info_dialog;
 GtkWidget *group_info_box;
@@ -108,6 +122,7 @@ void on_refresh_list_btn_clicked(GtkButton *btn, gpointer data);
 void on_private_chat_btn_clicked(GtkButton *btn, gpointer data);
 void on_group_chat_btn_clicked(GtkButton *btn, gpointer data);
 void on_group_invite_btn_clicked(GtkButton *btn, gpointer data);
+void on_group_kick_btn_clicked(GtkButton *btn, gpointer data);
 void on_group_info_btn_clicked(GtkButton *btn, gpointer data);
 void on_group_leave_btn_clicked(GtkButton *btn, gpointer data);
 void on_send_btn_clicked(GtkButton *btn, gpointer data);
@@ -118,6 +133,7 @@ void on_join_group_create_btn_clicked(GtkButton *btn, gpointer data);
 void on_join_group_join_btn_clicked(GtkButton *btn, gpointer data);
 
 void on_invite_to_group_confirm_btn_clicked(GtkButton *btn, gpointer data);
+void on_kick_from_group_confirm_btn_clicked(GtkButton *btn, gpointer data);
 
 //* utility functions
 void view_chat_history();
@@ -136,6 +152,7 @@ void show_main_window(int *client_socket_pt);
 void show_receiver_username_dialog(int *client_socket_pt);
 void show_join_group_dialog(int *client_socket_pt);
 void show_invite_to_group_dialog(int *client_socket_pt);
+void show_kick_from_group_dialog(int *client_socket_pt);
 void show_group_info_dialog();
 
 gpointer recv_handler(gpointer data);
@@ -151,8 +168,11 @@ gboolean recv_err_invite_myself(gpointer data);
 gboolean recv_err_user_not_found(gpointer data);
 gboolean recv_err_full_mem(gpointer data);
 gboolean recv_err_is_mem(gpointer data);
+gboolean recv_err_is_not_mem(gpointer data);
 gboolean recv_invite_friend_succ(gpointer data);
 gboolean recv_invite_friend(gpointer data);
+gboolean recv_kick_friend_succ(gpointer data);
+gboolean recv_kick_friend(gpointer data);
 gboolean recv_group_chat(gpointer data);
 gboolean recv_show_group_info_start(gpointer data);
 gboolean recv_show_group_info_end(gpointer data);

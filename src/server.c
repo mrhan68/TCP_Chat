@@ -307,6 +307,9 @@ void sv_user_use(int conn_socket)
         case INVITE_FRIEND:
             sv_invite_friend(conn_socket, &pkg);
             break;
+        case KICK_FRIEND:
+            sv_kick_friend(conn_socket, &pkg);
+            break;
         case GROUP_CHAT:
             sv_group_chat(conn_socket, &pkg);
             break;
@@ -857,6 +860,80 @@ int sv_leave_group_user(Active_user *user, int group_id)
     }
     return 0;
 }
+
+
+void sv_kick_friend(int conn_socket, Package *pkg)
+{
+    char friend_name[USERNAME_SIZE];
+    int user_id = search_user(conn_socket);
+    int friend_id;
+    int group_id;
+
+    group_id = pkg->group_id;
+    strcpy(friend_name, pkg->receiver);
+    friend_id = sv_search_id_user(user, friend_name);
+    if (friend_id >= 0)
+    {
+        if (friend_id == user_id)
+        {
+            pkg->ctrl_signal = ERR_KICK_MYSELF;
+            send(conn_socket, pkg, sizeof(*pkg), 0);
+            return;
+        }
+        else if (!check_user_in_group(user[friend_id], group_id))
+        {
+            pkg->ctrl_signal = ERR_IS_NOT_MEM;
+            send(conn_socket, pkg, sizeof(*pkg), 0);
+            return;
+        }
+        else // thanh cong
+        {
+            strcpy(pkg->msg, group[group_id].group_name);
+
+            send(user[friend_id].socket, pkg, sizeof(*pkg), 0);
+            printf("%s kick %s from %s\n", user[user_id].username,
+                   user[friend_id].username, group[group_id].group_name);
+		
+	        sv_leave_group_user(&user[friend_id], group_id);
+            sv_kick_user(user[friend_id], &group[group_id]);
+
+            pkg->ctrl_signal = KICK_FRIEND_SUCC;
+            send(conn_socket, pkg, sizeof(*pkg), 0);
+
+            // gui thong bao den cho moi nguoi
+            memset(pkg->sender, '\0', sizeof(pkg->sender));
+            strcpy(pkg->sender, SERVER_SYSTEM_USERNAME);
+            memset(pkg->msg, '\0', sizeof(pkg->msg));
+            sprintf(pkg->msg, "\"%s\" đã đuổi \"%s\" khỏi nhóm.", user[user_id].username, user[friend_id].username);
+            pkg->ctrl_signal = GROUP_CHAT;
+            sv_group_chat(conn_socket, pkg);
+        }
+    }
+
+    else
+    {
+        pkg->ctrl_signal = ERR_USER_NOT_FOUND;
+        send(conn_socket, pkg, sizeof(*pkg), 0);
+        return;
+    }
+}
+
+void sv_kick_user(Active_user user, Group *group)
+{
+    int i = 0;
+    for (i = 0; i < MAX_USER; i++)
+    {
+        Member mem = group->group_member[i];
+        if (strcmp(mem.username, user.username) == 0)
+        {
+            group->group_member[i].socket = -1;
+            strcpy(group->group_member[i].username, NULL_STRING);
+            group->curr_num--;
+	    break;
+	    }
+    }
+}
+
 
 void sv_update_port_group(Active_user *user, Group *group)
 {

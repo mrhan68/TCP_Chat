@@ -198,6 +198,13 @@ int sv_search_id_user_group(Group group, char *user_name);
 void sv_invite_friend(int conn_socket, Package *pkg);
 
 /**
+ * Duoi ban
+ * @param conn_socket socket kết nối đến client
+ * @param pkg con trỏ đến gói tin nhận được từ client
+ */
+void sv_kick_friend(int conn_socket, Package *pkg);
+
+/**
  * Chat trong nhom
  * @param conn_socket socket kết nối đến client
  * @param pkg con trỏ đến gói tin nhận được từ client
